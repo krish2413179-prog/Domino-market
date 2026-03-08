@@ -162,10 +162,31 @@ const generateMarketOnNode = (
     eventB: "Crypto markets react to macro shifts",
   };
 
-  const prompt = `You are a prediction market AI. Create a Domino Effect prediction market.
-Return ONLY valid JSON with no markdown or explanation:
+  const prompt = `You are a prediction market designer specializing in "Domino Effect" markets.
+
+A Domino Effect market has TWO prediction events where Event B is CAUSALLY DEPENDENT on Event A:
+- Event A is the TRIGGER: a near-term, specific, measurable event drawn from current news.
+- Event B is the CONSEQUENCE: an event that can ONLY plausibly occur IF Event A first happens. B is the downstream "domino" that falls when A falls.
+
+RULES:
+1. Event A and Event B must be clearly cause-and-effect linked. If A does NOT happen, B is irrelevant.
+2. Event A should be resolvable within 1-7 days.
+3. Event B should resolve within 30-90 days after Event A.
+4. Both events must be binary (YES/NO resolvable), specific, and verifiable.
+5. Avoid vague phrases like "market reacts" or "tensions rise". Use concrete, measurable thresholds.
+6. marketTitle should summarize the causal chain in one short phrase.
+
+EXAMPLES of good Domino Effect pairs:
+- A: "Fed raises interest rates by 0.5% at March 2025 meeting" → B: "US 10-year Treasury yield exceeds 5% within 30 days"
+- A: "OpenAI releases GPT-5 publicly" → B: "Google announces an emergency response model within 14 days"
+- A: "Oil price falls below $60/barrel" → B: "Saudi Arabia announces OPEC production cut within 30 days"
+
+Return ONLY valid JSON with absolutely no markdown, code fences, or explanation:
 {"marketTitle":"...","eventA":"...","eventB":"..."}
-Headlines:\n${headlines}`;
+
+Current news headlines to inspire the market:
+${headlines}`;
+
 
   const resp = new HTTPClient()
     .sendRequest(nodeRuntime, {
