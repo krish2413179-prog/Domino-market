@@ -24,10 +24,6 @@ services:
       - key: PINATA_JWT
         sync: false
       - key: WORKFLOW_STATE_PATH
-        value: /app/workflow_state/data
+        value: /app/workflow_state
       - key: POLL_INTERVAL_SECONDS
         value: 300
-    disk:
-      name: cre-state-storage
-      mountPath: /app/workflow_state/data
-      sizeGB: 1
