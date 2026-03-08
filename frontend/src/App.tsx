@@ -428,7 +428,7 @@ export const AppLayout: React.FC = () => {
     <div style={{ minHeight: '100vh', background: 'var(--bg-darker)' }}>
       <Navbar lastEventTimestamp={lastEventTimestamp} />
       
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', position: 'relative', zIndex: 1 }}>
+      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px 40px', position: 'relative', zIndex: 1 }}>
          <Outlet context={{ markets, loading, fetchMarkets, setSelectedMarket: handleSetSelectedMarket } satisfies ContextType} />
       </main>
 

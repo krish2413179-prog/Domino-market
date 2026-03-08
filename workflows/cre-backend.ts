@@ -82,12 +82,20 @@ async function generateAndDeployMarket() {
   try {
     const news = await fetchTopNews();
     const genAI = new GoogleGenerativeAI(aiKey);
-    const prompt = `Identify one major news story and invent a highly logical "Domino Effect" prediction market JSON. The market MUST have a very short deadline and be resolvable TODAY (e.g., within the next 1-2 hours, before 3 PM).
+    const prompt = `Identify one major news story and invent a highly logical "Domino Effect" prediction market JSON. 
+    
+    CRITICAL GUIDELINES:
+    1. CONCISENESS: Descriptions must be VERY SHORT (max 15-20 words). No long paragraphs.
+    2. HORIZONTAL STYLE: Write text that fits well in a wide layout. 
+    3. DEADLINE: The market MUST be resolvable TODAY (within 1-2 hours).
+    
+    JSON STRUCTURE:
     {
-      "marketTitle": "Name",
-      "eventA": { "description": "Desc with today's short deadline", "dataSource": "URL", "aiCondition": "Sentence" },
-      "eventB": { "description": "Desc with today's short deadline", "dataSource": "URL", "aiCondition": "Sentence" }
+      "marketTitle": "Short Punchy Title",
+      "eventA": { "description": "Short trigger desc", "dataSource": "URL", "aiCondition": "1 sentence condition" },
+      "eventB": { "description": "Short target desc", "dataSource": "URL", "aiCondition": "1 sentence condition" }
     }
+    
     Headlines: ${news}`;
 
     let marketConfig;
