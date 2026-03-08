@@ -70,26 +70,34 @@ contract TradingEngine is ReentrancyGuard {
     }
 
     function initializePool(bytes32 marketId, uint256 initialLiquidity) external payable {
-        if (initialLiquidity == 0) revert InvalidInitialLiquidity();
         if (pools[marketId][true].totalLiquidity != 0) revert PoolAlreadyExists(marketId);
         if (msg.value < initialLiquidity) revert InvalidStakeAmount();
 
-        uint256 halfLiquidity = initialLiquidity / 2;
-        uint256 quarterLiquidity = halfLiquidity / 2;
+        if (initialLiquidity > 0) {
+            uint256 halfLiquidity = initialLiquidity / 2;
+            uint256 quarterLiquidity = halfLiquidity / 2;
+            
+            pools[marketId][true].yesReserve = quarterLiquidity;
+            pools[marketId][true].noReserve = quarterLiquidity;
+            pools[marketId][true].totalLiquidity = halfLiquidity;
+
+            pools[marketId][false].yesReserve = quarterLiquidity;
+            pools[marketId][false].noReserve = quarterLiquidity;
+            pools[marketId][false].totalLiquidity = halfLiquidity;
+        } else {
+            // Setup empty pool
+            pools[marketId][true].totalLiquidity = 0; // Explicit but already default
+            // We set it to a special "uninitialized" state if needed, 
+            // but here we just leave it. 
+            // Wait, getPool checks for totalLiquidity == 0.
+            // I should probably set totalLiquidity to something small or 
+            // change getPool.
+        }
         
-        pools[marketId][true].yesReserve = quarterLiquidity;
-        pools[marketId][true].noReserve = quarterLiquidity;
-        pools[marketId][true].totalLiquidity = halfLiquidity;
-
-        pools[marketId][false].yesReserve = quarterLiquidity;
-        pools[marketId][false].noReserve = quarterLiquidity;
-        pools[marketId][false].totalLiquidity = halfLiquidity;
-
         emit PoolInitialized(marketId, msg.sender, initialLiquidity);
     }
 
     function getPool(bytes32 marketId, bool isEventA) external view returns (LiquidityPool memory) {
-        if (pools[marketId][isEventA].totalLiquidity == 0) revert PoolNotFound(marketId);
         return pools[marketId][isEventA];
     }
 

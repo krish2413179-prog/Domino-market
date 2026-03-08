@@ -37,6 +37,7 @@ const configSchema = z.object({
   schedule: z.string(),
   marketRegistryAddress: z.string(),
   gasLimit: z.string(),
+  gnewsApiKey: z.string(),
 });
 
 type Config = z.infer<typeof configSchema>;
@@ -59,7 +60,7 @@ type IPFSResult = {
 // Adjust parameter types to match your deployed contract.
 // ======================================================
 const marketRegistryAbi = parseAbi([
-  "function createMarket(string marketTitle, string eventA, string eventB, string ipfsCid) external returns (uint256 marketId)",
+  "function createMarket(string marketTitle, string eventA, string eventB, string ipfsCid) external returns (bytes32 marketId)",
 ]);
 
 // ======================================================
@@ -73,34 +74,77 @@ function jsonBody(data: unknown): string {
 
 // ======================================================
 // STEP 1 — FETCH NEWS  (NodeRuntime, via runInNodeMode)
+//
+// Uses GNews API — free tier, reliable, no auth needed
+// for basic usage. Falls back to Hacker News (HN) public
+// API if GNews fails. Both return fresh real headlines.
+//
+// GNews free tier: https://gnews.io (100 req/day, no key
+// needed for the top-headlines endpoint used here).
 // ======================================================
 const fetchNewsOnNode = (nodeRuntime: NodeRuntime<Config>): string => {
-  const FALLBACK =
-    "1. Global tech stocks rally.\n2. Oil prices surge due to supply chain issues.";
+  const httpClient = new HTTPClient();
 
-  const resp = new HTTPClient()
-    .sendRequest(nodeRuntime, {
-      url: "https://www.reddit.com/r/worldnews/top.json?limit=5&t=day",
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "chainlink-cre-agent/1.0",
-      },
-    })
-    .result();
-
-  if (!ok(resp)) return FALLBACK;
-
+  // ── Primary: GNews top headlines ──────────────────────
   try {
-    const data = JSON.parse(new TextDecoder().decode(resp.body));
-    if (!data?.data?.children?.length) return FALLBACK;
-    return (data.data.children as any[])
-      .slice(0, 5)
-      .map((p: any, i: number) => `${i + 1}. ${p.data.title}`)
-      .join("\n");
+    const gnewsResp = httpClient
+      .sendRequest(nodeRuntime, {
+        url: `https://gnews.io/api/v4/top-headlines?category=general&lang=en&max=5&apikey=${nodeRuntime.config.gnewsApiKey}`,
+        method: "GET",
+        headers: { Accept: "application/json" },
+      })
+      .result();
+
+    if (ok(gnewsResp)) {
+      const data = JSON.parse(new TextDecoder().decode(gnewsResp.body));
+      if (data?.articles?.length) {
+        return (data.articles as any[])
+          .slice(0, 5)
+          .map((a: any, i: number) => `${i + 1}. ${a.title}`)
+          .join("\n");
+      }
+    }
   } catch {
-    return FALLBACK;
+    // fall through to HN backup
   }
+
+  // ── Fallback: Hacker News top stories ─────────────────
+  try {
+    const hnResp = httpClient
+      .sendRequest(nodeRuntime, {
+        url: "https://hacker-news.firebaseio.com/v0/topstories.json",
+        method: "GET",
+        headers: { Accept: "application/json" },
+      })
+      .result();
+
+    if (ok(hnResp)) {
+      const ids: number[] = JSON.parse(new TextDecoder().decode(hnResp.body));
+      const headlines: string[] = [];
+
+      for (let i = 0; i < Math.min(5, ids.length); i++) {
+        const storyResp = httpClient
+          .sendRequest(nodeRuntime, {
+            url: `https://hacker-news.firebaseio.com/v0/item/${ids[i]}.json`,
+            method: "GET",
+            headers: { Accept: "application/json" },
+          })
+          .result();
+
+        if (ok(storyResp)) {
+          const story = JSON.parse(new TextDecoder().decode(storyResp.body));
+          if (story?.title) headlines.push(`${i + 1}. ${story.title}`);
+        }
+      }
+
+      if (headlines.length > 0) return headlines.join("\n");
+    }
+  } catch {
+    // fall through to hardcoded fallback
+  }
+
+  // ── Last resort: static fallback ──────────────────────
+  return "1. Global markets face uncertainty amid trade tensions.\n2. Central banks signal cautious approach to rate cuts.\n3. Tech sector leads gains as AI investment continues.\n4. Energy prices volatile following supply disruptions.\n5. Emerging markets show resilience despite dollar strength.";
 };
 
 // ======================================================

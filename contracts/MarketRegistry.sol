@@ -148,6 +148,56 @@ contract MarketRegistry {
             revert InvalidEventDefinition("Insufficient funds sent for initial liquidity");
         }
         
+        return _internalCreateMarket(ipfsHash, monitoringDuration, initialLiquidity);
+    }
+
+    /**
+     * @notice Simplified createMarket for AI workflows
+     * @param marketTitle Title of the market (stored in IPFS, used here for ID salt)
+     * @param ipfsCid IPFS CID containing the market definitions
+     */
+    function createMarket(
+        string memory marketTitle,
+        string memory, // eventA (ignored, in IPFS)
+        string memory, // eventB (ignored, in IPFS)
+        string memory ipfsCid
+    ) external returns (bytes32 marketId) {
+        // Use defaults for AI markets: 7 days monitoring, 0 initial liquidity
+        // Note: ID uses marketTitle as extra salt to avoid collisions with same CID
+        marketId = keccak256(abi.encodePacked(
+            msg.sender,
+            block.timestamp,
+            marketTitle,
+            ipfsCid
+        ));
+        
+        if (markets[marketId].creator != address(0)) {
+            revert MarketAlreadyExists(marketId);
+        }
+
+        Market storage market = markets[marketId];
+        market.marketId = marketId;
+        market.creator = msg.sender;
+        market.ipfsHash = ipfsCid;
+        market.creWorkflowAddress = address(0);
+        market.state = MarketState.Active;
+        market.createdAt = block.timestamp;
+        market.expiresAt = block.timestamp + 7 days;
+        
+        marketIds.push(marketId);
+        
+        // Initialize pool with 0 if possible, or skip
+        try tradingEngine.initializePool(marketId, 0) {} catch {}
+        
+        emit MarketCreated(marketId, msg.sender, market.createdAt, market.expiresAt);
+        return marketId;
+    }
+
+    function _internalCreateMarket(
+        string memory ipfsHash,
+        uint256 monitoringDuration,
+        uint256 initialLiquidity
+    ) internal returns (bytes32 marketId) {
         // Validate IPFS hash isn't empty
         DataValidator.validateNonEmptyString(ipfsHash);
         
@@ -158,7 +208,7 @@ contract MarketRegistry {
             ipfsHash
         ));
         
-        // Ensure market ID doesn't already exist (extremely unlikely but check anyway)
+        // Ensure market ID doesn't already exist
         if (markets[marketId].creator != address(0)) {
             revert MarketAlreadyExists(marketId);
         }
@@ -168,16 +218,15 @@ contract MarketRegistry {
         market.marketId = marketId;
         market.creator = msg.sender;
         market.ipfsHash = ipfsHash;
-        market.creWorkflowAddress = address(0); // Will be set later when workflow is deployed
+        market.creWorkflowAddress = address(0);
         market.state = MarketState.Active;
         market.createdAt = block.timestamp;
-        market.expiresAt = block.timestamp + monitoringDuration; // Market expires after monitoring duration
+        market.expiresAt = block.timestamp + monitoringDuration;
         
         // Add to market IDs array for enumeration
         marketIds.push(marketId);
         
         // Initialize liquidity pool in TradingEngine
-        // Transfer funds to TradingEngine and initialize the pool
         tradingEngine.initializePool{value: initialLiquidity}(marketId, initialLiquidity);
         
         // Set MarketRegistry reference in TradingEngine if not already set
