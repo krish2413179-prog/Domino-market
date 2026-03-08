@@ -62,7 +62,7 @@ export const WhitepaperPage: React.FC = () => {
         }}>
           <BookOpen size={14} /> PROTOCOL WHITEPAPER v1.0
         </div>
-        <h1 style={{ fontSize: '52px', marginBottom: '20px', lineHeight: 1.08 }}>Bimarket<br />Domino Protocol</h1>
+        <h1 style={{ fontSize: '52px', marginBottom: '20px', lineHeight: 1.08 }}>Domino market<br />Domino Protocol</h1>
         <p style={{ fontSize: '18px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '600px', margin: '0 auto' }}>
           An autonomous prediction market engine powered by <strong>Chainlink CRE</strong>, <strong>Gemini AI</strong>,
           and a causal "Domino Effect" market structure where Event B can only resolve if Event A first fires.
@@ -120,7 +120,7 @@ export const WhitepaperPage: React.FC = () => {
       {/* 1. CRE */}
       <Section number="01" title="Chainlink CRE Integration" icon={<Cpu size={22} />} color="var(--accent-primary)">
         <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '20px' }}>
-          Chainlink's <strong>Coprocessor Runtime Environment (CRE)</strong> is a decentralized compute layer that runs off-chain
+          Chainlink <strong> Runtime Environment (CRE)</strong> is a decentralized compute layer that runs off-chain
           logic and writes cryptographically verified results back to a smart contract via the <strong>Keystone Forwarder</strong>.
           In Bimarket, the CRE workflow runs on a cron trigger and acts as the autonomous "brain" of the protocol —
           fetching news, generating markets, uploading metadata, and registering them on-chain without any human input.
