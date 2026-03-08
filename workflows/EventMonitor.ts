@@ -200,7 +200,7 @@ export class EventMonitor {
     const url = definition.dataSources[0]; // For simplicity, AI Oracle uses the first source
     const condition = definition.detectionCriteria.condition;
 
-    console.log(`[AI Oracle] Fetching content from ${url}...`);
+    // console.log(`[AI Oracle] Fetching content from ${url}...`);
     let rawText = "";
     try {
       const resp = await fetch(url);
@@ -225,7 +225,7 @@ export class EventMonitor {
     You must answer strictly with the word "YES" or "NO". Do not include any other text, explanation, or punctuation.
     `;
 
-    console.log(`[AI Oracle] Querying Gemini 2.5 Flash to verify: "${condition}"`);
+    // console.log(`[AI Oracle] Querying Gemini 2.5 Flash to verify: "${condition}"`);
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -233,7 +233,7 @@ export class EventMonitor {
       });
 
       const text = response.text?.trim().toUpperCase() || "";
-      console.log(`[AI Oracle] Gemini Response: ${text}`);
+      // console.log(`[AI Oracle] Gemini Response: ${text}`);
 
       return {
         isMet: text === "YES",

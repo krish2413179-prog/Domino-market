@@ -150,14 +150,14 @@ async function runOrchestrationLoop() {
 
     for (const m of allMarkets) {
       const marketId = m.marketId;
-      console.log(`Processing ${marketId}...`);
+      // console.log(`Processing ${marketId}...`);
 
       let config: WorkflowConfig;
       if (m.ipfsHash && m.ipfsHash !== "QmMockHashForLocalTesting1234567890") {
         try {
           let json: any;
           if (metadataCache.has(m.ipfsHash)) {
-            console.log(`📦 [Runner] Using cached metadata for ${m.ipfsHash}`);
+          // console.log(`📦 [Runner] Using cached metadata for ${m.ipfsHash}`);
             json = metadataCache.get(m.ipfsHash);
           } else {
             console.log(`🌐 [Runner] Fetching fresh metadata for ${m.ipfsHash}`);
