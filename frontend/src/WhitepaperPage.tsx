@@ -76,6 +76,47 @@ export const WhitepaperPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Live Proof Gallery */}
+      <div style={{ marginBottom: '48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <span style={{
+            fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', color: '#10b981',
+            background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+            borderRadius: '4px', padding: '4px 12px'
+          }}>⚡ LIVE PROOF — CRE WORKFLOW RUNNING ON SEPOLIA</span>
+        </div>
+        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
+          {[
+            { src: '/Screenshot 2026-03-08 205859.png', caption: 'Run 1 — Karpowership\'s STEM Initiative market created on-chain' },
+            { src: '/Screenshot 2026-03-08 205921.png', caption: 'Run 2 — Measles Outbreak Escalation market created on-chain' },
+            { src: '/Screenshot 2026-03-08 205928.png', caption: 'Run 3 — Green Energy & Geopolitics Domino market created on-chain' },
+          ].map(({ src, caption }) => (
+            <div key={src} style={{ flex: '0 0 auto', width: '420px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+              {/* Terminal chrome bar */}
+              <div style={{ background: '#1a1a2e', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f57' }} />
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#febc2e' }} />
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#28c840' }} />
+                <span style={{ marginLeft: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
+                  cre workflow simulate . --target staging-settings --broadcast
+                </span>
+              </div>
+              <img
+                src={src}
+                alt={caption}
+                style={{ width: '100%', display: 'block', objectFit: 'cover' }}
+              />
+              <div style={{ background: 'var(--bg-card)', padding: '10px 14px', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)' }}>
+                ✅ {caption}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
+          Each run: fetches live headlines → Gemini generates Domino pair → pinned to IPFS → written to MarketRegistry via Chainlink CRE · <span style={{ color: 'var(--accent-primary)' }}>Sepolia Testnet</span>
+        </p>
+      </div>
+
       {/* 1. CRE */}
       <Section number="01" title="Chainlink CRE Integration" icon={<Cpu size={22} />} color="var(--accent-primary)">
         <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '20px' }}>
