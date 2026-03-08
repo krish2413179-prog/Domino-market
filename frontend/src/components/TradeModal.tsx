@@ -10,8 +10,8 @@ interface TradeModalProps {
   onSuccess: () => void;
 }
 
-const REGISTRY_ADDR = "0x23D6c7832D9ee75C43d75A4100e515ED688Ae7A4";
-const ENGINE_ADDR = "0x197c6c04a6257f1cc6Bfa0F8adf795f0edC62978";
+const REGISTRY_ADDR = "0x90959444AeDfd16189423DA428144Cf29845a382";
+const ENGINE_ADDR = "0x93e6B0485D27de04dCA0E2b48a73CC289a9c5245";
 
 const TradeModal: React.FC<TradeModalProps> = ({ market, isEventA, onClose, onSuccess }) => {
   const { signer, isCorrectNetwork } = useWeb3();

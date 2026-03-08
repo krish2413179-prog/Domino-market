@@ -3,7 +3,7 @@
   "geminiApiKey": "AIzaSyACh1kA9fHyLqK2bnGC31V51g18wv8L5cg",
   "pinataApiKey": "2633ffdb840677223bd8",
   "pinataApiSecret": "6cd3032387749006a2ed7e3d4dda4dc9fab7c5f9ae0f311ad160d83d04fdbbcb",
-  "marketRegistryAddress": "0x23D6c7832D9ee75C43d75A4100e515ED688Ae7A4",
+  "marketRegistryAddress": "0x90959444AeDfd16189423DA428144Cf29845a382",
   "sepoliaRpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
   "privateKey": "4f2f402e4fa4fe0b24025ac812e7ff84118b80239728baebe5866795c560fa01",
   "gasLimit": "500000",

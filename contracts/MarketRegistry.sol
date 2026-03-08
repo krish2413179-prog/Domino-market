@@ -79,6 +79,12 @@ contract MarketRegistry {
     /// @notice Authorized Keystone Forwarder address
     address public keystoneForwarder = 0x15fC6ae953E024d975e77382eEeC56A9101f9F88;
 
+    /// @notice ETH amount auto-seeded into each new AI-created market pool (default 0.01 ETH)
+    uint256 public seedAmount = 0.01 ether;
+
+    /// @notice Owner address (set in constructor) for admin functions
+    address public owner;
+
     /**
      * @notice Constructor to set the TradingEngine address
      * @param _tradingEngine Address of the TradingEngine contract
@@ -86,6 +92,26 @@ contract MarketRegistry {
     constructor(address _tradingEngine) {
         require(_tradingEngine != address(0), "Invalid TradingEngine address");
         tradingEngine = TradingEngine(_tradingEngine);
+        owner = msg.sender;
+    }
+
+    /// @notice Accept ETH deposits to fund auto-seeding
+    receive() external payable {}
+
+    /**
+     * @notice Deposit ETH to fund auto-seeding of new markets
+     */
+    function depositLiquidity() external payable {
+        require(msg.value > 0, "Must send ETH");
+    }
+
+    /**
+     * @notice Update the per-market seed amount
+     * @param _seedAmount New seed amount in wei
+     */
+    function updateSeedAmount(uint256 _seedAmount) external {
+        require(msg.sender == owner, "Only owner");
+        seedAmount = _seedAmount;
     }
 
     /**
@@ -200,8 +226,16 @@ contract MarketRegistry {
         
         marketIds.push(marketId);
         
-        // Initialize pool with 0 if possible, or skip
-        try tradingEngine.initializePool(marketId, 0) {} catch {}
+        // Auto-seed the trading pool from the contract's ETH reserve
+        uint256 seed = (seedAmount > 0 && address(this).balance >= seedAmount)
+            ? seedAmount
+            : 0;
+        
+        if (seed > 0) {
+            try tradingEngine.initializePool{value: seed}(marketId, seed) {} catch {}
+        } else {
+            try tradingEngine.initializePool(marketId, 0) {} catch {}
+        }
         
         emit MarketCreated(marketId, msg.sender, market.createdAt, market.expiresAt);
         return marketId;
