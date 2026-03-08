@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, BookOpen, Cpu, Shield, Zap, TrendingUp, Layers } from 'lucide-react';
+import { ArrowLeft, BookOpen, Cpu, Shield, Zap, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const WhitepaperPage: React.FC = () => {
