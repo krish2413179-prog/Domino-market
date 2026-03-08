@@ -22,16 +22,31 @@ const REGISTRY_ABI = [
  * Periodically creates new markets based on real-world news
  */
 async function fetchTopNews(): Promise<string> {
-  console.log("📰 [Generator] Fetching latest global news headlines...");
+  console.log("📰 [Generator] Fetching latest global news headlines from Reddit...");
   try {
-    const response = await fetch('https://www.reddit.com/r/worldnews/top.json?limit=15&t=day');
+    const response = await fetch('https://www.reddit.com/r/worldnews/top.json?limit=15&t=day', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ [Generator] News API error (${response.status}):`, errorText.slice(0, 200));
+      throw new Error(`News API responded with status ${response.status}`);
+    }
+
     const data: any = await response.json();
+    if (!data.data || !data.data.children) {
+      throw new Error("Unexpected Reddit API response structure");
+    }
+
     const headlines = data.data.children.map((post: any, index: number) => {
       return `${index + 1}. Title: ${post.data.title}\n   Source URL: ${post.data.url}`;
     });
     return headlines.join('\n\n');
   } catch (error) {
-    console.error("Failed to fetch news:", error);
+    console.error("❌ [Generator] Failed to fetch news:", error);
     throw new Error("Could not retrieve news headlines.");
   }
 }
