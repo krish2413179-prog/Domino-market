@@ -2,18 +2,12 @@ import { EventEmitter } from 'events';
 import { EventMonitor } from './EventMonitor';
 import { ethers } from 'ethers';
 
-/**
- * Workflow execution phases
- */
 export type WorkflowPhase = 
-  | 'MONITORING_EVENT_A'  // Initial phase: monitoring for Event A occurrence
-  | 'MONITORING_EVENT_B'  // Event A occurred, now monitoring Event B
-  | 'SETTLING'            // Preparing settlement data
-  | 'COMPLETED';          // Workflow finished
+  | 'MONITORING_EVENT_A'
+  | 'MONITORING_EVENT_B'
+  | 'SETTLING'
+  | 'COMPLETED';
 
-/**
- * Persistent state maintained across workflow executions
- */
 export interface WorkflowState {
   marketId: string;
   phase: WorkflowPhase;
@@ -28,36 +22,24 @@ export interface WorkflowState {
   lastError?: string;
 }
 
-/**
- * Event definition structure
- */
 export interface EventDefinition {
   description: string;
   dataSources: string[];
   detectionCriteria: any;
-  monitoringDuration?: number; // Only for Event B, in seconds
+  monitoringDuration?: number;
   consensusThreshold: number;
 }
 
-/**
- * Configuration for workflow execution
- */
 export interface WorkflowConfig {
   marketId: string;
   eventADefinition: EventDefinition;
   eventBDefinition: EventDefinition;
   contractAddress: string;
   pollIntervalSeconds: number;
-  expiresAt: number; // Overall market expiration (for Event A)
-  createdAt: number; // Market creation timestamp
+  expiresAt: number;
+  createdAt: number;
 }
 
-/**
- * WorkflowOrchestrator class
- * 
- * Coordinates the monitoring of Event A and Event B, managing state transitions
- * and settlement submission based on event detection outcomes.
- */
 export class WorkflowOrchestrator extends EventEmitter {
   private eventMonitor: EventMonitor;
   private signer?: ethers.Signer;
@@ -68,9 +50,6 @@ export class WorkflowOrchestrator extends EventEmitter {
     this.eventMonitor = eventMonitor;
   }
 
-  /**
-   * Main execution method that routes to appropriate phase handler
-   */
   async execute(
     state: WorkflowState,
     config: WorkflowConfig
@@ -80,13 +59,10 @@ export class WorkflowOrchestrator extends EventEmitter {
       return state;
     }
 
-    // GATING: Ensure market is at least 24 hours old before any verification (Requirement: Gemini Cost Optimization)
     const marketAge = Date.now() - (config.createdAt * 1000);
     const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
     
     if (marketAge < TWENTY_FOUR_HOURS && state.phase !== 'COMPLETED' && state.phase !== 'SETTLING') {
-      const remaining = Math.ceil((TWENTY_FOUR_HOURS - marketAge) / (60 * 60 * 1000));
-      // console.log(`⏳ Market ${config.marketId} is too young. Verification will pause for ~${remaining}h.`);
       return state;
     }
 
@@ -110,7 +86,6 @@ export class WorkflowOrchestrator extends EventEmitter {
           throw new Error(`Unknown workflow phase: ${state.phase}`);
       }
     } catch (error) {
-      // Catch-all for unexpected orchestration errors
       const newRetryCount = state.retryCount + 1;
       nextState = {
         ...state,
@@ -132,16 +107,12 @@ export class WorkflowOrchestrator extends EventEmitter {
     return nextState;
   }
 
-  /**
-   * Monitor Event A (The Triggering Event)
-   */
   private async monitorEventA(
     state: WorkflowState,
     config: WorkflowConfig
   ): Promise<WorkflowState> {
     const now = Date.now();
     
-    // Check for market expiration
     if (now >= config.expiresAt) {
       return {
         ...state,
@@ -185,9 +156,6 @@ export class WorkflowOrchestrator extends EventEmitter {
     }
   }
 
-  /**
-   * Monitor Event B occurrence (only after Event A is detected)
-   */
   private async monitorEventB(
     state: WorkflowState,
     config: WorkflowConfig
@@ -216,7 +184,6 @@ export class WorkflowOrchestrator extends EventEmitter {
         };
       }
 
-      // Check for timeout
       if (now >= expiresAt) {
         return {
           ...state,
@@ -247,9 +214,6 @@ export class WorkflowOrchestrator extends EventEmitter {
     }
   }
 
-  /**
-   * Settle the market by submitting final outcomes to the blockchain
-   */
   private async settleMarket(
     state: WorkflowState,
     config: WorkflowConfig
@@ -257,7 +221,6 @@ export class WorkflowOrchestrator extends EventEmitter {
     const now = Date.now();
 
     try {
-      // Settlement Authorization Check (Requirement 18.1)
       if (!this.isAuthorizedToSettle(config)) {
         throw new Error('Unauthorized: No settlement signer configured for this market');
       }
@@ -296,18 +259,10 @@ export class WorkflowOrchestrator extends EventEmitter {
     }
   }
 
-  /**
-   * Check if the current environment is authorized to settle the market
-   */
   private isAuthorizedToSettle(config: WorkflowConfig): boolean {
-    // In a real environment, this might check for a private key or signed session
-    // For now we'll simulate authorization based on presence of contract address
     return !!config.contractAddress;
   }
 
-  /**
-   * Submit settlement data to the blockchain with a valid signature.
-   */
   private async submitToBlockchain(address: string, data: any): Promise<void> {
     if (!this.signer) {
       throw new Error("No signer provided for blockchain settlement");
@@ -317,7 +272,6 @@ export class WorkflowOrchestrator extends EventEmitter {
       "function submitSettlement(tuple(bytes32 marketId, bool eventAOccurred, bool eventBOccurred, uint256 eventATimestamp, uint256 eventBTimestamp, bytes proof) data, bytes signature) external"
     ], this.signer);
 
-    // Create the message hash for signing (matching the contract's verifySettlementSignature)
     const messageHash = ethers.solidityPackedKeccak256(
       ["bytes32", "bool", "bool", "uint256", "uint256", "bytes"],
       [
@@ -330,12 +284,10 @@ export class WorkflowOrchestrator extends EventEmitter {
       ]
     );
 
-    // Sign the hash (ethers handles the "\x19Ethereum Signed Message:\n32" prefix automatically)
     const signature = await this.signer.signMessage(ethers.getBytes(messageHash));
 
     console.log(`Submitting on-chain settlement for market ${data.marketId} with signature...`);
     
-    // Explicitly set gas limit to avoid estimateGas issues with unauthorized workflows (though we just granted the role)
     const tx = await settlementManager.submitSettlement(data, signature, { 
       gasLimit: 500000 
     });

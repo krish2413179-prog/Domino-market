@@ -8,20 +8,16 @@ import pinataSDK from "@pinata/sdk";
 import path from "path";
 import http from "http";
 
-// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// ABIs
+
 const REGISTRY_ABI = [
   "function listMarkets(uint8 stateFilter, uint256 offset, uint256 limit) external view returns (tuple(bytes32 marketId, address creator, string ipfsHash, address creWorkflowAddress, uint8 state, uint256 createdAt, uint256 expiresAt)[])",
   "function getMarketCount() external view returns (uint256)",
   "function createMarket(string ipfsHash, uint256 monitoringDuration, uint256 initialLiquidity) external payable returns (bytes32)"
 ];
 
-/**
- * SERVICE 1: AI MARKET GENERATOR
- * Periodically creates new markets based on real-world news
- */
+
 async function fetchTopNews(): Promise<string> {
   console.log("📰 [Generator] Fetching latest global news headlines...");
   const fallbackNews = `1. Global tech stocks rally as AI-driven productivity gains reported.
@@ -104,7 +100,6 @@ async function generateAndDeployMarket() {
       const result = await model.generateContent(prompt);
       const response = await result.response;
       let jsonString = response.text() || "";
-      // Robust JSON extraction: look for the first { and last }
       const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         jsonString = jsonMatch[0];
@@ -118,12 +113,10 @@ async function generateAndDeployMarket() {
       });
       console.warn("⚠️ [Generator] Using Fallback Market due to error...");
       marketConfig = { ...FALLBACK_MARKET };
-      // Add a unique identifier to prevent IPFS CID duplication and visual confusion
       const salt = Math.floor(Math.random() * 9999);
       marketConfig.marketTitle = `${marketConfig.marketTitle} #${salt}`;
     }
 
-    // Add a tiny bit of random data to ensure a unique IPFS hash every time
     (marketConfig as any).generation_salt = Date.now();
 
     console.log("✅ [Generator] Market Prepared:", marketConfig.marketTitle);
@@ -146,7 +139,7 @@ async function generateAndDeployMarket() {
     const registry = new ethers.Contract(process.env.MARKET_REGISTRY_ADDRESS || "", REGISTRY_ABI, deployer);
 
     const initialLiquidity = ethers.parseEther("0.01");
-    const monitoringDuration = 86400; // 24 hours
+    const monitoringDuration = 86400;
 
     console.log(`🚀 [Generator] Deploying Market to Sepolia...`);
     const tx = await registry.createMarket(ipfsHash, monitoringDuration, initialLiquidity, { value: initialLiquidity });
@@ -160,10 +153,7 @@ async function generateAndDeployMarket() {
 
 const metadataCache = new Map<string, any>();
 
-/**
- * SERVICE 2: MARKET RUNNER
- * Scans Sepolia for active markets and processes them
- */
+
 async function runOrchestrationLoop() {
   console.log(`\n🔍 [Runner] Scanning Sepolia for active markets...`);
   const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
@@ -237,15 +227,12 @@ async function runOrchestrationLoop() {
   }
 }
 
-/**
- * MAIN ENTRY POINT
- */
+
 async function start() {
   console.log("==========================================");
   console.log("🌍 Domino Effect CRE Backend Starting...");
   console.log("==========================================");
 
-  // 1. Initial run
   await runOrchestrationLoop();
   await generateAndDeployMarket();
 
@@ -253,7 +240,6 @@ async function start() {
   setInterval(runOrchestrationLoop, 10 * 60 * 1000); // 10 min
   setInterval(generateAndDeployMarket, 30 * 60 * 1000); // 30 min
   
-  // 3. Simple HTTP Server for Render Health Checks (with CORS for Vercel)
   const port = process.env.PORT || 10000;
   http.createServer((req, res) => {
     res.writeHead(200, { 

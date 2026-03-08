@@ -3,9 +3,6 @@ import { validateConsensus } from './utils/dataValidator';
 import get from 'lodash.get';
 import { GoogleGenAI } from '@google/genai';
 
-/**
- * DataSourceResponse - Structure for data retrieved from external sources
- */
 export interface DataSourceResponse {
   source: string;
   timestamp: number;
@@ -13,9 +10,6 @@ export interface DataSourceResponse {
   error?: string;
 }
 
-/**
- * EventEvaluation - Result of evaluating event criteria
- */
 export interface EventEvaluation {
   isMet: boolean;
   timestamp?: number;
@@ -23,14 +17,6 @@ export interface EventEvaluation {
   error?: string;
 }
 
-/**
- * EventMonitor - Handles data polling and criteria evaluation
- * 
- * Provides methods for aggregating data from multiple sources and
- * evaluating them against specified criteria.
- * 
- * Requirements: 2.1, 2.2, 7.3, 7.4, 7.5, 7.6, 7.7
- */
 export class EventMonitor {
   private adapter: DataSourceAdapter;
 
@@ -38,12 +24,6 @@ export class EventMonitor {
     this.adapter = adapter;
   }
 
-  /**
-   * Poll data sources and aggregate results
-   * 
-   * @param dataSources - URLs of data sources to poll
-   * @returns Array of responses from data sources
-   */
   async pollDataSources(dataSources: string[]): Promise<DataSourceResponse[]> {
     const pollPromises = dataSources.map(async (url) => {
       try {
@@ -65,7 +45,6 @@ export class EventMonitor {
 
     const results = await Promise.all(pollPromises);
     
-    // Check if ALL sources failed (Requirement 7.7)
     const successCount = results.filter(r => !r.error).length;
     if (successCount === 0 && dataSources.length > 0) {
       console.warn('Total failure: All data sources are unavailable');
@@ -74,14 +53,6 @@ export class EventMonitor {
     return results;
   }
 
-  /**
-   * Evaluate detection criteria against retrieved data using consensus
-   * 
-   * @param responses - Data source responses
-   * @param criteria - Criteria to evaluate against
-   * @param consensusThreshold - Required agreement ratio (0-1)
-   * @returns The outcome of the evaluation
-   */
   evaluateCriteria(
     responses: DataSourceResponse[],
     criteria: any,
@@ -125,7 +96,6 @@ export class EventMonitor {
         const sorted = [...numericValues].sort((a, b) => a - b);
         const median = sorted[Math.floor(sorted.length / 2)];
         
-        // External data validation: Bounds check (Requirement 18.3)
         if (criteria.bounds) {
           if (median < criteria.bounds.min || median > criteria.bounds.max) {
              return { isMet: false, error: `Consensus value ${median} out of bounds [${criteria.bounds.min}, ${criteria.bounds.max}]` };
@@ -158,12 +128,6 @@ export class EventMonitor {
     }
   }
 
-  /**
-   * High-level method to poll data sources and evaluate criteria
-   * 
-   * @param definition - Event definition containing sources and criteria
-   * @returns The outcome of the evaluation
-   */
   async pollAndEvaluate(definition: any): Promise<{ isMet: boolean; timestamp: number; value?: number }> {
     if (definition.detectionCriteria && definition.detectionCriteria.type === 'AI_ORACLE') {
       return this.evaluateAIOracle(definition);
@@ -187,9 +151,6 @@ export class EventMonitor {
     };
   }
 
-  /**
-   * Evaluate conditions using an LLM (AI Oracle)
-   */
   private async evaluateAIOracle(definition: any): Promise<{ isMet: boolean; timestamp: number; value?: number }> {
     const aiKey = process.env.GEMINI_API_KEY;
     if (!aiKey) {
@@ -197,7 +158,7 @@ export class EventMonitor {
     }
 
     const ai = new GoogleGenAI({ apiKey: aiKey });
-    const url = definition.dataSources[0]; // For simplicity, AI Oracle uses the first source
+    const url = definition.dataSources[0];
     const condition = definition.detectionCriteria.condition;
 
     // console.log(`[AI Oracle] Fetching content from ${url}...`);
@@ -205,7 +166,6 @@ export class EventMonitor {
     try {
       const resp = await fetch(url);
       rawText = await resp.text();
-      // Basic truncation to fit context window
       if (rawText.length > 30000) rawText = rawText.slice(0, 30000);
     } catch (e) {
       throw new Error(`AI Oracle failed to fetch source URL: ${url}`);
