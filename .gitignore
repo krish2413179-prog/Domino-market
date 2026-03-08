@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+yarn.lock
+
+# Build outputs
+dist/
+out/
+artifacts/
+cache/
+cache_foundry/
+coverage/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Workflow state
+workflow_state/
+.kiro/
+typechain-types/
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

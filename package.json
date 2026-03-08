@@ -1,0 +1,46 @@
+{
+  "name": "domino-prediction-market",
+  "version": "1.0.0",
+  "description": "Decentralized prediction market for cascading conditional events using Chainlink Runtime Environment",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:contracts": "forge test",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "cre:backend": "ts-node workflows/cre-backend.ts"
+  },
+  "keywords": [
+    "prediction-market",
+    "chainlink",
+    "cre",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/lodash.get": "^4.4.9",
+    "@types/node": "^20.0.0",
+    "fast-check": "^3.0.0",
+    "hardhat": "^2.19.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.44.0",
+    "@google/generative-ai": "^0.24.1",
+    "@openzeppelin/contracts": "^5.0.0",
+    "@pinata/sdk": "^2.1.0",
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.6",
+    "body-parser": "^2.2.2",
+    "dotenv": "^16.3.0",
+    "ethers": "^6.9.0",
+    "express": "^5.2.1",
+    "lodash.get": "^4.4.2"
+  }
+}

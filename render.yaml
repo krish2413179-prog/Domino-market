@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: domino-cre-backend
+    runtime: docker
+    dockerfilePath: CRE.Dockerfile
+    plan: starter # Change to 'free' if you want the free tier, but it may sleep
+    envVars:
+      - key: SEPOLIA_RPC_URL
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: MARKET_REGISTRY_ADDRESS
+        value: 0x492da4DB64532C73a9a22eD2A29Cb54dd3bA737e
+      - key: TRADING_ENGINE_ADDRESS
+        value: 0x5A072ecd7355b26160b2368cF2920b798f583032
+      - key: SETTLEMENT_MANAGER_ADDRESS
+        value: 0xA18776da88f1E38275d0A0fb2447BEE1bE777f00
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PINATA_API_KEY
+        sync: false
+      - key: PINATA_API_SECRET
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      - key: WORKFLOW_STATE_PATH
+        value: /app/workflow_state/data
+      - key: POLL_INTERVAL_SECONDS
+        value: 300
+    mountPath: /app/workflow_state
+    disk:
+      name: cre-state-storage
+      mountPath: /app/workflow_state/data
+      sizeGB: 1
