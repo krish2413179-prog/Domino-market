@@ -31,14 +31,14 @@ Uses Chainlink Functions and custom AI Oracle logic to:
 - **`TradingEngine.sol`**: Manages the Dual-AMM pools and swap logic.
 - **`MarketRegistry.sol`**: Central registry for all AI-generated markets.
 - **`SettlementManager.sol`**: Logic for independent event verification and payout distribution.
-- **`CRE Backend`**: The Node.js "Brain" that manages news ingestion, AI synthesis, and orchestration.
+
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
+- CRE CLI
 - Hardhat / Foundry
 - Sepolia ETH (for trading/deployment)
 
@@ -63,9 +63,9 @@ Uses Chainlink Functions and custom AI Oracle logic to:
 
 ### Running the Platform
 
-**Start the Backend (AI Generator & Runner):**
+**Start the Workflows (AI Generator & Runner):**
 ```bash
-npm run cre:backend
+cre workflow simulate . --target staging-settings --broadcast
 ```
 
 **Start the Frontend:**
